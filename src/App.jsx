@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const Row = {
   key: "",
@@ -11,8 +13,11 @@ const Row = {
 export default function App() {
   const [date, setDate] = useState(new Date());
   const [rowsByDate, setRowsByDate] = useState({});
-  const [user, setUser] = useState("");
-  const [currentUser, setCurrentUser] = useState("");
+  const [currentUser, setCurrentUser] = useState("defaultUser");
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [savedWorkouts, setSavedWorkouts] = useState({});
+  const [workoutName, setWorkoutName] = useState("");
+  const [showOptions, setShowOptions] = useState(false);
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -20,12 +25,21 @@ export default function App() {
     if (storedRows) {
       setRowsByDate(JSON.parse(storedRows));
     }
+
+    const storedWorkouts = localStorage.getItem("savedWorkouts");
+    if (storedWorkouts) {
+      setSavedWorkouts(JSON.parse(storedWorkouts));
+    }
   }, []);
 
-  // Save data to localStorage whenever rowsByDate updates
+  // Save data to localStorage whenever rowsByDate or savedWorkouts updates
   useEffect(() => {
     localStorage.setItem("exerciseRows", JSON.stringify(rowsByDate));
   }, [rowsByDate]);
+
+  useEffect(() => {
+    localStorage.setItem("savedWorkouts", JSON.stringify(savedWorkouts));
+  }, [savedWorkouts]);
 
   const handlePreviousDate = () => {
     const previousDate = new Date(date);
@@ -91,14 +105,6 @@ export default function App() {
         [currentDate]: updatedRows,
       },
     });
-  };
-
-  const handleUserChange = (e) => {
-    setUser(e.target.value);
-  };
-
-  const handleUserSubmit = () => {
-    setCurrentUser(user);
   };
 
   const renderItem = ({ item }) => (
@@ -178,6 +184,43 @@ export default function App() {
     );
   };
 
+  const toggleCalendar = () => {
+    setIsCalendarOpen(!isCalendarOpen);
+  };
+
+  const handleDateChange = (selectedDate) => {
+    setDate(selectedDate);
+    setIsCalendarOpen(false);
+  };
+
+  const saveWorkout = () => {
+    const currentDate = formatDate(date);
+    const userRows = rowsByDate[currentUser] || {};
+    const currentRows = userRows[currentDate] || [];
+    setSavedWorkouts({
+      ...savedWorkouts,
+      [workoutName]: currentRows,
+    });
+    setWorkoutName("");
+  };
+
+  const loadWorkout = (name) => {
+    const workout = savedWorkouts[name];
+    if (workout) {
+      const currentDate = formatDate(date);
+      setRowsByDate({
+        ...rowsByDate,
+        [currentUser]: {
+          ...rowsByDate[currentUser],
+          [currentDate]: workout.map((row, index) => ({
+            ...row,
+            key: `${index + 1}`,
+          })),
+        },
+      });
+    }
+  };
+
   const currentDate = formatDate(date);
   const userRows = rowsByDate[currentUser] || {};
   const currentRows = userRows[currentDate] || [];
@@ -185,56 +228,80 @@ export default function App() {
   return (
     <div style={styles.container}>
       <style>{mediaStyles}</style>
-      <div style={styles.userContainer}>
-        <input
-          type="text"
-          placeholder="Enter User"
-          value={user}
-          onChange={handleUserChange}
-          style={styles.userInput}
-        />
-        <button onClick={handleUserSubmit} style={styles.userButton}>
-          Submit
-        </button>
+      <div style={styles.dateContainer}>
+        <button onClick={handlePreviousDate}>{"<"}</button>
+        <div style={styles.date} onClick={toggleCalendar}>
+          {currentDate}
+        </div>
+        <button onClick={handleNextDate}>{">"}</button>
       </div>
-      {currentUser && (
-        <>
-          <div style={styles.dateContainer}>
-            <button onClick={handlePreviousDate}>{"<"}</button>
-            <div style={styles.date}>{currentDate}</div>
-            <button onClick={handleNextDate}>{">"}</button>
-          </div>
-
-          <button style={{ width: "100%" }} onClick={addRow}>
-            Add Row
-          </button>
-
-          <div style={styles.table}>
-            <div style={styles.tableHeadersWrapper}>
-              <div style={{ ...styles.headerCell, ...styles.cell }}>
-                Exercise
-              </div>
-              <div style={{ ...styles.headerCell, ...styles.cell }}>Sets</div>
-              <div style={{ ...styles.headerCell, ...styles.cell }}>Reps</div>
-              <div style={{ ...styles.headerCell, ...styles.cell }}>Weight</div>
-              <div style={{ ...styles.headerCell, ...styles.cell }}></div>
-            </div>
-
-            {currentRows.map((item) => (
-              <div key={item.key}>{renderItem({ item })}</div>
-            ))}
-          </div>
-
-          {currentRows.map((row) => (
-            <div key={row.key}>
-              {row.exercise ? renderLastThreeRecords(row.exercise) : null}
-            </div>
-          ))}
-        </>
+      {isCalendarOpen && (
+        <DatePicker selected={date} onChange={handleDateChange} inline />
       )}
+
+      <div style={styles.optionsButtonContainer}>
+        <button
+          onClick={() => setShowOptions(!showOptions)}
+          style={{ width: "100%" }}
+        >
+          Options
+        </button>
+        {showOptions && (
+          <div style={styles.optionsContainer}>
+            <input
+              type="text"
+              placeholder="Enter Workout Name"
+              value={workoutName}
+              onChange={(e) => setWorkoutName(e.target.value)}
+              style={styles.workoutInput}
+            />
+            <div style={styles.optionsContainerSaveAndLoad}>
+              <button onClick={saveWorkout} style={styles.saveButton}>
+                Save Workout
+              </button>
+              <select
+                onChange={(e) => loadWorkout(e.target.value)}
+                style={styles.loadSelect}
+              >
+                <option value="">Load Workout</option>
+                {Object.keys(savedWorkouts).map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <button style={{ width: "100%" }} onClick={addRow}>
+        Add Row
+      </button>
+
+      <div style={styles.table}>
+        <div style={styles.tableHeadersWrapper}>
+          <div style={{ ...styles.headerCell, ...styles.cell }}>Exercise</div>
+          <div style={{ ...styles.headerCell, ...styles.cell }}>Sets</div>
+          <div style={{ ...styles.headerCell, ...styles.cell }}>Reps</div>
+          <div style={{ ...styles.headerCell, ...styles.cell }}>Weight</div>
+          <div style={{ ...styles.headerCell, ...styles.cell }}></div>
+        </div>
+
+        {currentRows.map((item) => (
+          <div key={item.key}>{renderItem({ item })}</div>
+        ))}
+      </div>
+
+      {currentRows.map((row) => (
+        <div key={row.key}>
+          {row.exercise ? renderLastThreeRecords(row.exercise) : null}
+        </div>
+      ))}
     </div>
   );
 }
+
 const styles = {
   container: {
     display: "flex",
@@ -245,36 +312,44 @@ const styles = {
     overflow: "auto",
     boxSizing: "border-box",
   },
-  userContainer: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  userInput: {
-    flex: 1,
-    padding: 8,
-    marginRight: 8,
-    border: "1px solid #ccc",
-    borderRadius: 4,
-  },
-  userButton: {
-    padding: 8,
-    border: "none",
-    borderRadius: 4,
-    backgroundColor: "#007bff",
-    color: "#fff",
-    cursor: "pointer",
-  },
   dateContainer: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 16,
+    cursor: "pointer",
   },
   date: {
     fontSize: 20,
+    padding: 8,
+  },
+  workoutContainer: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  workoutInput: {
+    flex: 1,
+    padding: 8,
+    marginRight: 8,
+    border: "1px solid #ccc",
+    borderRadius: 4,
+  },
+  saveButton: {
+    padding: 8,
+    border: "none",
+    borderRadius: 4,
+    backgroundColor: "#28a745",
+    color: "#fff",
+    cursor: "pointer",
+    marginRight: 8,
+  },
+  loadSelect: {
+    padding: 8,
+    border: "1px solid #ccc",
+    borderRadius: 4,
   },
   table: {
     marginTop: 16,
@@ -303,6 +378,14 @@ const styles = {
     border: "1px solid #ccc",
     boxSizing: "border-box",
   },
+  deleteButton: {
+    padding: 8,
+    border: "none",
+    borderRadius: 4,
+    backgroundColor: "#d9534f",
+    color: "#fff",
+    cursor: "pointer",
+  },
   historyContainer: {
     marginTop: 16,
   },
@@ -319,6 +402,23 @@ const styles = {
   historyCell: {
     flex: 1,
     textAlign: "center",
+  },
+  optionsButtonContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    margin: "10px",
+  },
+  optionsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginTop: "10px",
+  },
+  optionsContainerSaveAndLoad: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
   },
 };
 
