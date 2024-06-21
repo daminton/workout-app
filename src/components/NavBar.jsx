@@ -16,6 +16,12 @@ const NavBar = ({ setCurrentPage }) => {
       >
         Timer
       </button>
+      <button
+        style={navStyles.navButton}
+        onClick={() => setCurrentPage("settings")}
+      >
+        Settings
+      </button>
     </div>
   );
 };

@@ -5,6 +5,7 @@ import WorkoutTable from "./components/WorkoutTable";
 import WorkoutHistory from "./components/WorkoutHistory";
 import NavBar from "./components/NavBar";
 import TimerPage from "./components/TimerPage";
+import SettingsPage from "./components/SettingsPage";
 import { formatDate } from "./utils/dateUtils";
 import { styles, mediaStyles } from "./styles/styles";
 
@@ -19,24 +20,21 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState("workout");
 
   useEffect(() => {
-    const storedRows = localStorage.getItem("exerciseRows");
-    if (storedRows) {
-      setRowsByDate(JSON.parse(storedRows));
-    }
-
-    const storedWorkouts = localStorage.getItem("savedWorkouts");
-    if (storedWorkouts) {
-      setSavedWorkouts(JSON.parse(storedWorkouts));
+    const storedData = localStorage.getItem("workoutAppData");
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      setRowsByDate(parsedData.rowsByDate);
+      setSavedWorkouts(parsedData.savedWorkouts);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("exerciseRows", JSON.stringify(rowsByDate));
-  }, [rowsByDate]);
-
-  useEffect(() => {
-    localStorage.setItem("savedWorkouts", JSON.stringify(savedWorkouts));
-  }, [savedWorkouts]);
+    const data = {
+      rowsByDate,
+      savedWorkouts,
+    };
+    localStorage.setItem("workoutAppData", JSON.stringify(data));
+  }, [rowsByDate, savedWorkouts]);
 
   const handlePreviousDate = () => {
     const previousDate = new Date(date);
@@ -100,6 +98,72 @@ export default function App() {
     });
   };
 
+  const saveWorkout = (name) => {
+    const currentDate = formatDate(date);
+    const userRows = rowsByDate[currentUser] || {};
+    const currentRows = userRows[currentDate] || [];
+    setSavedWorkouts({
+      ...savedWorkouts,
+      [name]: currentRows,
+    });
+  };
+
+  const loadWorkout = (name) => {
+    const workout = savedWorkouts[name];
+    if (workout) {
+      const currentDate = formatDate(date);
+      setRowsByDate({
+        ...rowsByDate,
+        [currentUser]: {
+          ...rowsByDate[currentUser],
+          [currentDate]: workout,
+        },
+      });
+    } else {
+      alert("Workout not found");
+    }
+  };
+
+  const deleteWorkout = (name) => {
+    const newSavedWorkouts = { ...savedWorkouts };
+    delete newSavedWorkouts[name];
+    setSavedWorkouts(newSavedWorkouts);
+  };
+
+  const updateWorkout = (name) => {
+    saveWorkout(name); // Updating is essentially saving over the existing workout
+  };
+
+  const exportWorkoutHistory = () => {
+    const data = {
+      rowsByDate,
+      savedWorkouts,
+    };
+    const dataStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "workout_history.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const importWorkoutHistory = (file) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target.result);
+        setRowsByDate(importedData.rowsByDate);
+        setSavedWorkouts(importedData.savedWorkouts);
+      } catch (e) {
+        alert("Invalid JSON file");
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const currentDate = formatDate(date);
   const userRows = rowsByDate[currentUser] || {};
   const currentRows = userRows[currentDate] || [];
@@ -122,54 +186,6 @@ export default function App() {
           {isCalendarOpen && (
             <DatePickerComponent date={date} setDate={setDate} />
           )}
-
-          <div style={styles.optionsButtonContainer}>
-            <button
-              onClick={() => setShowOptions(!showOptions)}
-              style={{ width: "100%" }}
-            >
-              Options
-            </button>
-            {showOptions && (
-              <WorkoutOptions
-                workoutName={workoutName}
-                setWorkoutName={setWorkoutName}
-                saveWorkout={() =>
-                  saveWorkout(
-                    date,
-                    rowsByDate,
-                    currentUser,
-                    workoutName,
-                    savedWorkouts,
-                    setSavedWorkouts
-                  )
-                }
-                loadWorkout={(name) =>
-                  loadWorkout(
-                    name,
-                    date,
-                    setRowsByDate,
-                    currentUser,
-                    savedWorkouts
-                  )
-                }
-                deleteWorkout={(name) =>
-                  deleteWorkout(name, savedWorkouts, setSavedWorkouts)
-                }
-                updateWorkout={(name) =>
-                  updateWorkout(
-                    name,
-                    date,
-                    rowsByDate,
-                    currentUser,
-                    savedWorkouts,
-                    setSavedWorkouts
-                  )
-                }
-                savedWorkouts={savedWorkouts}
-              />
-            )}
-          </div>
 
           <button style={{ width: "100%" }} onClick={addRow}>
             Add Row
@@ -195,6 +211,19 @@ export default function App() {
         </>
       )}
       {currentPage === "timer" && <TimerPage />}
+      {currentPage === "settings" && (
+        <SettingsPage
+          workoutName={workoutName}
+          setWorkoutName={setWorkoutName}
+          saveWorkout={saveWorkout}
+          loadWorkout={loadWorkout}
+          deleteWorkout={deleteWorkout}
+          updateWorkout={updateWorkout}
+          savedWorkouts={savedWorkouts}
+          exportWorkoutHistory={exportWorkoutHistory}
+          importWorkoutHistory={importWorkoutHistory}
+        />
+      )}
       <NavBar setCurrentPage={setCurrentPage} />
     </div>
   );

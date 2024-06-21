@@ -2,7 +2,7 @@ export const navStyles = {
   navBar: {
     position: "fixed",
     bottom: 0,
-    width: "100%",
+    width: "92%",
     display: "flex",
     justifyContent: "space-around",
     padding: "10px 0",
