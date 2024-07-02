@@ -16,14 +16,26 @@ export default defineConfig({
         theme_color: "#A9A9A9",
         icons: [
           {
-            src: "public/dumbell.png",
+            src: "public/dumbbell_white.png", // Ensure the path matches your PNG
             sizes: "192x192",
             type: "image/png",
             purpose: "any maskable",
           },
           {
-            src: "public/dumbell.png",
+            src: "public/dumbbell_white.png", // Ensure the path matches your PNG
             sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+          {
+            src: "public/dumbbell_white.png", // Additional size for Android
+            sizes: "256x256",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+          {
+            src: "public/dumbbell_white.png", // Additional size for Android
+            sizes: "384x384",
             type: "image/png",
             purpose: "any maskable",
           },
