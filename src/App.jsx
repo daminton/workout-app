@@ -55,7 +55,7 @@ export default function App() {
     const newRow = {
       key: `${currentRows.length + 1}`,
       exercise: "",
-      sets: "",
+      sets: "1",
       reps: "",
       weight: "",
     };

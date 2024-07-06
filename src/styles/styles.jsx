@@ -55,12 +55,34 @@ export const styles = {
     display: "flex",
     flexDirection: "row",
     marginBottom: 8,
+    alignItems: "flex-end",
   },
   headerCell: {
+    flex: 1,
     fontWeight: "bold",
     textAlign: "center",
-    flex: 1,
     padding: 8,
+  },
+  headerGroup: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    flex: 2, // Adjust the flex value as needed
+  },
+  headerSubCell: {
+    fontWeight: "bold",
+    textAlign: "center",
+    padding: 8,
+    width: "100%",
+  },
+  divider: {
+    height: "1px",
+    width: "100%",
+    backgroundColor: "#ccc",
+    margin: "4px 0",
+  },
+  expandHeader: {
+    width: "60px",
   },
   row: {
     display: "flex",
@@ -75,6 +97,7 @@ export const styles = {
     boxSizing: "border-box",
   },
   deleteButton: {
+    width: "60px",
     padding: 8,
     border: "none",
     borderRadius: 4,
@@ -115,6 +138,26 @@ export const styles = {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
+  },
+  expandingCellsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 2,
+  },
+  expandingCell: {
+    width: "100%",
+    padding: 8,
+    border: "1px solid #ccc",
+    boxSizing: "border-box",
+  },
+  expandButton: {
+    width: "60px",
+    padding: 8,
+    border: "none",
+    borderRadius: 4,
+    backgroundColor: "#007bff",
+    color: "#fff",
+    cursor: "pointer",
   },
 };
 

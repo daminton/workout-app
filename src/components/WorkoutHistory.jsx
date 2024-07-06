@@ -18,10 +18,16 @@ const WorkoutHistory = ({ exercise, rowsByDate, currentUser }) => {
     });
   }
 
+  // Sort history by date descending
+  history.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // Get the last 3 records
+  const lastThreeRecords = history.slice(0, 3);
+
   return (
     <div style={styles.historyContainer}>
       <div style={styles.historyTitle}>Last 3 Records for {exercise}:</div>
-      {history.map((entry, index) => (
+      {lastThreeRecords.map((entry, index) => (
         <div key={index} style={styles.historyRow}>
           <div>{formatDate(new Date(entry.date))}</div>
           <div style={styles.historyCell}>Sets: {entry.sets}</div>
