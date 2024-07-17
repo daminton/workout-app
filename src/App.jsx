@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import DatePickerComponent from "./components/DatePickerComponent";
-import WorkoutOptions from "./components/WorkoutOptions";
 import WorkoutTable from "./components/WorkoutTable";
 import WorkoutHistory from "./components/WorkoutHistory";
 import NavBar from "./components/NavBar";
@@ -16,7 +15,6 @@ export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [savedWorkouts, setSavedWorkouts] = useState({});
   const [workoutName, setWorkoutName] = useState("");
-  const [showOptions, setShowOptions] = useState(false);
   const [currentPage, setCurrentPage] = useState("workout");
 
   useEffect(() => {
@@ -48,14 +46,14 @@ export default function App() {
     setDate(nextDate);
   };
 
-  const addRow = () => {
+  const addExercise = () => {
     const currentDate = formatDate(date);
     const userRows = rowsByDate[currentUser] || {};
     const currentRows = userRows[currentDate] || [];
-    const newRow = {
+    const newExercise = {
       key: `${currentRows.length + 1}`,
       exercise: "",
-      sets: "1",
+      sets: "",
       reps: "",
       weight: "",
     };
@@ -63,7 +61,7 @@ export default function App() {
       ...rowsByDate,
       [currentUser]: {
         ...userRows,
-        [currentDate]: [...currentRows, newRow],
+        [currentDate]: [...currentRows, newExercise],
       },
     });
   };
@@ -187,14 +185,16 @@ export default function App() {
             <DatePickerComponent date={date} setDate={setDate} />
           )}
 
-          <button style={{ width: "100%" }} onClick={addRow}>
-            Add Row
+          <button style={{ width: "100%" }} onClick={addExercise}>
+            Add Exercise
           </button>
 
           <WorkoutTable
             currentRows={currentRows}
             handleInputChange={handleInputChange}
             handleDeleteRow={handleDeleteRow}
+            rowsByDate={rowsByDate}
+            currentUser={currentUser}
           />
 
           {currentRows.map((row) => (
