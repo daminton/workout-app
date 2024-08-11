@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { styles } from "../styles/styles";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "./ui/table";
+import { Input } from "./ui/input";
+import WorkoutHistory from "./WorkoutHistory";
+import { Button } from "./ui/button";
+import { Trash2 } from "lucide-react";
 
 const WorkoutTable = ({
   currentRows,
@@ -9,6 +21,7 @@ const WorkoutTable = ({
   currentUser,
 }) => {
   const [volumeChanges, setVolumeChanges] = useState({});
+  const [visibleHistory, setVisibleHistory] = useState({});
 
   useEffect(() => {
     const changes = {};
@@ -24,6 +37,13 @@ const WorkoutTable = ({
     });
     setVolumeChanges(changes);
   }, [currentRows, rowsByDate, currentUser]);
+
+  const toggleHistory = (key) => {
+    setVisibleHistory((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const getLastVolume = (exercise) => {
     const historicalData = rowsByDate[currentUser] || {};
@@ -71,68 +91,90 @@ const WorkoutTable = ({
   };
 
   return (
-    <div style={styles.table}>
-      <div style={styles.tableHeadersWrapper}>
-        <div style={{ ...styles.headerCell, ...styles.cell }}>Exercise</div>
-        <div style={{ ...styles.headerCell, ...styles.cell }}>Sets</div>
-        <div style={{ ...styles.headerCell, ...styles.cell }}>Reps</div>
-        <div style={{ ...styles.headerCell, ...styles.cell }}>Weight</div>
-        <div style={{ ...styles.headerCell, ...styles.cell }}></div>
-      </div>
+    <div className="w-full flex justify-center">
+      <Table className="w-[98%]">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Exercise</TableHead>
+            <TableHead>Sets</TableHead>
+            <TableHead>Reps</TableHead>
+            <TableHead>Weight</TableHead>
+            <TableHead></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {currentRows.map((item) => {
+            const backgroundColor = volumeChanges[item.key] || "white";
 
-      {currentRows.map((item) => {
-        const backgroundColor = volumeChanges[item.key] || "white"; // Default to white if no change detected
-
-        return (
-          <div key={item.key} style={styles.row}>
-            <input
-              style={{
-                flex: 1,
-                padding: 8,
-                width: "60px",
-                border: "1px solid #ccc",
-                boxSizing: "border-box",
-                backgroundColor: backgroundColor,
-              }}
-              value={item.exercise}
-              onChange={(e) =>
-                handleInputChange(item.key, "exercise", e.target.value)
-              }
-              placeholder="Enter exercise name"
-            />
-            <input
-              style={styles.cell}
-              value={item.sets}
-              onChange={(e) =>
-                handleInputChange(item.key, "sets", e.target.value)
-              }
-              placeholder="Sets"
-            />
-            <input
-              style={styles.cell}
-              value={item.reps}
-              onChange={(e) =>
-                handleInputChange(item.key, "reps", e.target.value)
-              }
-              placeholder="Reps"
-            />
-            <input
-              style={styles.cell}
-              value={item.weight}
-              onChange={(e) =>
-                handleInputChange(item.key, "weight", e.target.value)
-              }
-              placeholder="Weight"
-            />
-            <button
-              style={{ ...styles.deleteButton, ...styles.cell }}
-              onClick={() => handleDeleteRow(item.key)}
-            >
-              Delete
-            </button>
-          </div>
-        );
-      })}
+            return (
+              <React.Fragment key={item.key}>
+                <TableRow onClick={() => toggleHistory(item.key)}>
+                  <TableCell>
+                    <Input
+                      style={{
+                        backgroundColor: backgroundColor,
+                      }}
+                      value={item.exercise}
+                      onChange={(e) =>
+                        handleInputChange(item.key, "exercise", e.target.value)
+                      }
+                      placeholder="Enter exercise name"
+                    />
+                  </TableCell>
+                  <TableCell className="w-16">
+                    <Input
+                      value={item.sets}
+                      onChange={(e) =>
+                        handleInputChange(item.key, "sets", e.target.value)
+                      }
+                      placeholder="Sets"
+                    />
+                  </TableCell>
+                  <TableCell className="w-16">
+                    <Input
+                      value={item.reps}
+                      onChange={(e) =>
+                        handleInputChange(item.key, "reps", e.target.value)
+                      }
+                      placeholder="Reps"
+                    />
+                  </TableCell>
+                  <TableCell className="w-16">
+                    <Input
+                      value={item.weight}
+                      onChange={(e) =>
+                        handleInputChange(item.key, "weight", e.target.value)
+                      }
+                      placeholder="Weight"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() => handleDeleteRow(item.key)}
+                      variant={"destructive"}
+                      size={"icon"}
+                    >
+                      <Trash2 size={22} color="black" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                {item.exercise && (
+                  <TableRow>
+                    <TableCell colSpan={5}>
+                      <WorkoutHistory
+                        exercise={item.exercise}
+                        rowsByDate={rowsByDate}
+                        currentUser={currentUser}
+                        isVisible={visibleHistory[item.key]}
+                      />
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </TableBody>
+      </Table>
     </div>
   );
 };

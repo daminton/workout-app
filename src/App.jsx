@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
-import DatePickerComponent from "./components/DatePickerComponent";
 import WorkoutTable from "./components/WorkoutTable";
-import WorkoutHistory from "./components/WorkoutHistory";
 import NavBar from "./components/NavBar";
 import TimerPage from "./components/TimerPage";
 import SettingsPage from "./components/SettingsPage";
-import { formatDate } from "./utils/dateUtils";
 import { styles, mediaStyles } from "./styles/styles";
+import { Button } from "./components/ui/button";
+import { Calendar } from "./components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "./lib/utils";
+import { format } from "date-fns";
+import { Plus } from "lucide-react";
+import { ChevronRightIcon, ChevronLeftIcon } from "lucide-react";
 
 export default function App() {
   const [date, setDate] = useState(new Date());
@@ -47,7 +56,7 @@ export default function App() {
   };
 
   const addExercise = () => {
-    const currentDate = formatDate(date);
+    const currentDate = date;
     const userRows = rowsByDate[currentUser] || {};
     const currentRows = userRows[currentDate] || [];
     const newExercise = {
@@ -67,7 +76,7 @@ export default function App() {
   };
 
   const handleInputChange = (key, field, value) => {
-    const currentDate = formatDate(date);
+    const currentDate = date;
     const userRows = rowsByDate[currentUser] || {};
     const currentRows = userRows[currentDate] || [];
     const newRows = currentRows.map((row) =>
@@ -83,7 +92,7 @@ export default function App() {
   };
 
   const handleDeleteRow = (key) => {
-    const currentDate = formatDate(date);
+    const currentDate = date;
     const userRows = rowsByDate[currentUser] || {};
     const currentRows = userRows[currentDate] || [];
     const updatedRows = currentRows.filter((row) => row.key !== key);
@@ -97,7 +106,7 @@ export default function App() {
   };
 
   const saveWorkout = (name) => {
-    const currentDate = formatDate(date);
+    const currentDate = date;
     const userRows = rowsByDate[currentUser] || {};
     const currentRows = userRows[currentDate] || [];
     setSavedWorkouts({
@@ -109,7 +118,7 @@ export default function App() {
   const loadWorkout = (name) => {
     const workout = savedWorkouts[name];
     if (workout) {
-      const currentDate = formatDate(date);
+      const currentDate = date;
       setRowsByDate({
         ...rowsByDate,
         [currentUser]: {
@@ -162,53 +171,66 @@ export default function App() {
     reader.readAsText(file);
   };
 
-  const currentDate = formatDate(date);
+  const currentDate = date;
   const userRows = rowsByDate[currentUser] || {};
   const currentRows = userRows[currentDate] || [];
 
   return (
-    <div style={styles.container}>
+    <div className="flex flex-col w-[100vw] h-[100vh] overflow-auto ">
       <style>{mediaStyles}</style>
       {currentPage === "workout" && (
-        <>
-          <div style={styles.dateContainer}>
-            <button onClick={handlePreviousDate}>{"<"}</button>
-            <div
+        <div className="w-full">
+          <div className="flex flex-row items-center justify-between mb-4 cursor-pointer px-2 pt-2">
+            <Button variant="outline" size="icon" onClick={handlePreviousDate}>
+              <ChevronLeftIcon className="h-4 w-4" />
+            </Button>
+
+            {/* <div
               style={styles.date}
               onClick={() => setIsCalendarOpen(!isCalendarOpen)}
             >
-              {currentDate}
-            </div>
-            <button onClick={handleNextDate}>{">"}</button>
-          </div>
-          {isCalendarOpen && (
-            <DatePickerComponent date={date} setDate={setDate} />
-          )}
-
-          <button style={{ width: "100%" }} onClick={addExercise}>
-            Add Exercise
-          </button>
-
-          <WorkoutTable
-            currentRows={currentRows}
-            handleInputChange={handleInputChange}
-            handleDeleteRow={handleDeleteRow}
-            rowsByDate={rowsByDate}
-            currentUser={currentUser}
-          />
-
-          {currentRows.map((row) => (
-            <div key={row.key}>
-              {row.exercise ? (
-                <WorkoutHistory
-                  exercise={row.exercise}
-                  rowsByDate={rowsByDate}
-                  currentUser={currentUser}
+              {format(currentDate, "PPP")}
+            </div> */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-fit border-0 justify-center text-lg",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
                 />
-              ) : null}
-            </div>
-          ))}
-        </>
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" size="icon" onClick={handleNextDate}>
+              <ChevronRightIcon className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="w-full h-full flex flex-col items-end">
+            <WorkoutTable
+              currentRows={currentRows}
+              handleInputChange={handleInputChange}
+              handleDeleteRow={handleDeleteRow}
+              rowsByDate={rowsByDate}
+              currentUser={currentUser}
+            />
+            <Button onClick={addExercise} size="icon" className="mr-2 mt-5">
+              <Plus />
+            </Button>
+          </div>
+        </div>
       )}
       {currentPage === "timer" && <TimerPage />}
       {currentPage === "settings" && (

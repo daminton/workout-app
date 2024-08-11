@@ -1,8 +1,16 @@
 import React from "react";
-import { formatDate } from "../utils/dateUtils";
-import { styles } from "../styles/styles";
+import { format } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 
-const WorkoutHistory = ({ exercise, rowsByDate, currentUser }) => {
+const WorkoutHistory = ({ exercise, rowsByDate, currentUser, isVisible }) => {
+  if (!isVisible) return null;
   const history = [];
   for (const date in rowsByDate[currentUser]) {
     const rows = rowsByDate[currentUser][date];
@@ -31,20 +39,37 @@ const WorkoutHistory = ({ exercise, rowsByDate, currentUser }) => {
   }
 
   // Display only the last three instances
-  const lastThreeEntries = history.slice(-3);
+  const lastThreeEntries = history.slice(-3).reverse();
 
   return (
-    <div style={styles.historyContainer}>
-      <div style={styles.historyTitle}>Last 3 Records for {exercise}</div>
-      {lastThreeEntries.map((entry, index) => (
-        <div key={index} style={styles.historyRow}>
-          <div>{formatDate(new Date(entry.date))}</div>
-          <div style={styles.historyCell}>Sets: {entry.sets}</div>
-          <div style={styles.historyCell}>Reps: {entry.reps}</div>
-          <div style={styles.historyCell}>Weight: {entry.weight}</div>
-          <div style={styles.historyCell}>Volume: {entry.volume}</div>
-        </div>
-      ))}
+    <div className=" p-2 rounded-md mt-2">
+      <h4 className="text-sm font-medium mb-2">
+        Last 3 Records for {exercise}
+      </h4>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[100px]">Date</TableHead>
+            <TableHead>Sets</TableHead>
+            <TableHead>Reps</TableHead>
+            <TableHead>Weight</TableHead>
+            <TableHead>Volume</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {lastThreeEntries.map((entry, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                {format(new Date(entry.date), "MMM d, yyyy")}
+              </TableCell>
+              <TableCell>{entry.sets}</TableCell>
+              <TableCell>{entry.reps}</TableCell>
+              <TableCell>{entry.weight}</TableCell>
+              <TableCell>{entry.volume.toFixed(1)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };

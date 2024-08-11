@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { ModeToggle } from "./mode-toggle";
 
 const SettingsPage = ({
   workoutName,
@@ -20,6 +21,7 @@ const SettingsPage = ({
 
   return (
     <div style={{ padding: "20px" }}>
+      <ModeToggle />
       <div>
         <h2>Workout Options</h2>
         <input
