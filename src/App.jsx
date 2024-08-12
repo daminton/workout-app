@@ -3,7 +3,6 @@ import WorkoutTable from "./components/WorkoutTable";
 import NavBar from "./components/NavBar";
 import TimerPage from "./components/TimerPage";
 import SettingsPage from "./components/SettingsPage";
-import { styles, mediaStyles } from "./styles/styles";
 import { Button } from "./components/ui/button";
 import { Calendar } from "./components/ui/calendar";
 import {
@@ -30,8 +29,11 @@ export default function App() {
     const storedData = localStorage.getItem("workoutAppData");
     if (storedData) {
       const parsedData = JSON.parse(storedData);
-      setRowsByDate(parsedData.rowsByDate);
-      setSavedWorkouts(parsedData.savedWorkouts);
+      setRowsByDate(parsedData.rowsByDate || {});
+      setSavedWorkouts(parsedData.savedWorkouts || {});
+      if (parsedData.currentDate) {
+        setDate(new Date(parsedData.currentDate));
+      }
     }
   }, []);
 
@@ -39,9 +41,10 @@ export default function App() {
     const data = {
       rowsByDate,
       savedWorkouts,
+      currentDate: date.toISOString(), // Save the current date
     };
     localStorage.setItem("workoutAppData", JSON.stringify(data));
-  }, [rowsByDate, savedWorkouts]);
+  }, [rowsByDate, savedWorkouts, date]);
 
   const handlePreviousDate = () => {
     const previousDate = new Date(date);
@@ -177,20 +180,12 @@ export default function App() {
 
   return (
     <div className="flex flex-col w-[100vw] h-[100vh] overflow-auto ">
-      <style>{mediaStyles}</style>
       {currentPage === "workout" && (
         <div className="w-full">
           <div className="flex flex-row items-center justify-between mb-4 cursor-pointer px-2 pt-2">
             <Button variant="outline" size="icon" onClick={handlePreviousDate}>
               <ChevronLeftIcon className="h-4 w-4" />
             </Button>
-
-            {/* <div
-              style={styles.date}
-              onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-            >
-              {format(currentDate, "PPP")}
-            </div> */}
             <Popover>
               <PopoverTrigger asChild>
                 <Button

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ModeToggle } from "./mode-toggle";
 
 const SettingsPage = ({
@@ -20,7 +20,7 @@ const SettingsPage = ({
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="p-5">
       <ModeToggle />
       <div>
         <h2>Workout Options</h2>
@@ -52,10 +52,10 @@ const SettingsPage = ({
           Delete Workout
         </button>
       </div>
-      <div style={{ marginTop: "20px" }}>
+      <div className="mt-20">
         <button onClick={exportWorkoutHistory}>Export Workout History</button>
       </div>
-      <div style={{ marginTop: "20px" }}>
+      <div className="mt-20">
         <input
           type="file"
           ref={fileInputRef}
