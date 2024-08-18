@@ -8,9 +8,9 @@ import {
   TableCell,
 } from "./ui/table";
 import { Input } from "./ui/input";
-import WorkoutHistory from "./WorkoutHistory";
+import WorkoutInformation from "./WorkoutInformation";
 import { Button } from "./ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, View } from "lucide-react";
 
 const WorkoutTable = ({
   currentRows,
@@ -21,15 +21,17 @@ const WorkoutTable = ({
 }) => {
   const [volumeChanges, setVolumeChanges] = useState({});
   const [visibleHistory, setVisibleHistory] = useState({});
+  const [expandedRows, setExpandedRows] = useState({});
+
+  const handleSetUpdate = (exerciseKey, setIndex, field, value) => {
+    handleInputChange(exerciseKey, field, value, setIndex);
+  };
 
   useEffect(() => {
     const changes = {};
     currentRows.forEach((item) => {
       const lastVolume = getLastVolume(item.exercise);
-      const sets = parseInt(item.sets);
-      const reps = parseInt(item.reps);
-      const weight = parseFloat(item.weight);
-      const currentVolume = calculateCurrentVolume(sets, reps, weight);
+      const currentVolume = calculateCurrentVolume(item);
 
       changes[item.key] =
         lastVolume === null || currentVolume > lastVolume ? "green" : "red";
@@ -37,18 +39,10 @@ const WorkoutTable = ({
     setVolumeChanges(changes);
   }, [currentRows, rowsByDate, currentUser]);
 
-  const toggleHistory = (key) => {
-    setVisibleHistory((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
   const getLastVolume = (exercise) => {
     const historicalData = rowsByDate[currentUser] || {};
     let lastVolume = null;
 
-    // Find the last recorded volume for the exercise, assuming dates are in chronological order
     const sortedDates = Object.keys(historicalData).sort(
       (a, b) => new Date(a) - new Date(b)
     );
@@ -57,15 +51,12 @@ const WorkoutTable = ({
       const rows = historicalData[date];
       for (const row of rows) {
         if (row.exercise === exercise) {
-          const sets = parseInt(row.sets);
-          const reps = parseInt(row.reps);
-          const weight = parseFloat(row.weight);
           let volume = 0;
-          if (weight === 0) {
-            volume = sets * reps;
-          } else {
-            volume = sets * reps * weight;
-          }
+          (row.setsData || []).forEach((set) => {
+            const reps = parseInt(set.reps) || 0;
+            const weight = parseFloat(set.weight) || 0;
+            volume += reps * (weight > 0 ? weight : 1);
+          });
           if (lastVolume !== null) {
             return volume; // Return the last volume found
           }
@@ -77,27 +68,31 @@ const WorkoutTable = ({
     return lastVolume;
   };
 
-  const calculateCurrentVolume = (sets, reps, weight) => {
+  const calculateCurrentVolume = (item) => {
     let currentVolume = 0;
-    if (!isNaN(sets) && !isNaN(reps) && !isNaN(weight)) {
-      if (weight === 0) {
-        currentVolume = sets * reps;
-      } else {
-        currentVolume = sets * reps * weight;
-      }
-    }
+    (item.setsData || []).forEach((set) => {
+      const reps = parseInt(set.reps) || 0;
+      const weight = parseFloat(set.weight) || 0;
+      currentVolume += reps * (weight > 0 ? weight : 1);
+    });
     return currentVolume;
+  };
+
+  const toggleExpand = (key) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
   return (
     <div className="w-full flex justify-center">
-      <Table className="w-[98%]">
+      <Table className="w-[96%]">
         <TableHeader>
           <TableRow>
+            <TableHead></TableHead>
             <TableHead>Exercise</TableHead>
             <TableHead>Sets</TableHead>
-            <TableHead>Reps</TableHead>
-            <TableHead>Weight</TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
@@ -107,7 +102,15 @@ const WorkoutTable = ({
 
             return (
               <React.Fragment key={item.key}>
-                <TableRow onClick={() => toggleHistory(item.key)}>
+                <TableRow>
+                  <TableCell>
+                    <Button
+                      onClick={() => toggleExpand(item.key)}
+                      size={"icon"}
+                    >
+                      <View size={22} color="black" />
+                    </Button>
+                  </TableCell>
                   <TableCell>
                     <Input
                       style={{
@@ -129,24 +132,6 @@ const WorkoutTable = ({
                       placeholder="Sets"
                     />
                   </TableCell>
-                  <TableCell className="w-16">
-                    <Input
-                      value={item.reps}
-                      onChange={(e) =>
-                        handleInputChange(item.key, "reps", e.target.value)
-                      }
-                      placeholder="Reps"
-                    />
-                  </TableCell>
-                  <TableCell className="w-16">
-                    <Input
-                      value={item.weight}
-                      onChange={(e) =>
-                        handleInputChange(item.key, "weight", e.target.value)
-                      }
-                      placeholder="Weight"
-                    />
-                  </TableCell>
                   <TableCell>
                     <Button
                       onClick={() => handleDeleteRow(item.key)}
@@ -157,14 +142,16 @@ const WorkoutTable = ({
                     </Button>
                   </TableCell>
                 </TableRow>
-                {item.exercise && (
+                {expandedRows[item.key] && (
                   <TableRow>
-                    <TableCell colSpan={5}>
-                      <WorkoutHistory
+                    <TableCell colSpan={3}>
+                      <WorkoutInformation
                         exercise={item.exercise}
                         rowsByDate={rowsByDate}
                         currentUser={currentUser}
-                        isVisible={visibleHistory[item.key]}
+                        isVisible={true}
+                        currentExercise={item}
+                        onSetUpdate={handleSetUpdate}
                       />
                     </TableCell>
                   </TableRow>

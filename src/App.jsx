@@ -41,7 +41,7 @@ export default function App() {
     const data = {
       rowsByDate,
       savedWorkouts,
-      currentDate: date.toISOString(), // Save the current date
+      currentDate: date.toISOString(),
     };
     localStorage.setItem("workoutAppData", JSON.stringify(data));
   }, [rowsByDate, savedWorkouts, date]);
@@ -65,9 +65,8 @@ export default function App() {
     const newExercise = {
       key: `${currentRows.length + 1}`,
       exercise: "",
-      sets: "",
-      reps: "",
-      weight: "",
+      sets: "1",
+      setsData: [{ reps: "", weight: "" }],
     };
     setRowsByDate({
       ...rowsByDate,
@@ -78,19 +77,41 @@ export default function App() {
     });
   };
 
-  const handleInputChange = (key, field, value) => {
+  const handleInputChange = (key, field, value, setIndex) => {
     const currentDate = date;
-    const userRows = rowsByDate[currentUser] || {};
-    const currentRows = userRows[currentDate] || [];
-    const newRows = currentRows.map((row) =>
-      row.key === key ? { ...row, [field]: value } : row
-    );
-    setRowsByDate({
-      ...rowsByDate,
-      [currentUser]: {
-        ...userRows,
-        [currentDate]: newRows,
-      },
+    setRowsByDate((prevRowsByDate) => {
+      const userRows = prevRowsByDate[currentUser] || {};
+      const currentRows = userRows[currentDate] || [];
+      const newRows = currentRows.map((row) => {
+        if (row.key === key) {
+          if (field === "sets") {
+            const newSetsCount = parseInt(value) || 0;
+            const currentSetsData = row.setsData || [];
+            const newSetsData = Array(newSetsCount)
+              .fill()
+              .map(
+                (_, index) => currentSetsData[index] || { reps: "", weight: "" }
+              );
+            return { ...row, [field]: value, setsData: newSetsData };
+          } else if (field === "reps" || field === "weight") {
+            const newSetsData = [...(row.setsData || [])];
+            newSetsData[setIndex] = {
+              ...newSetsData[setIndex],
+              [field]: value,
+            };
+            return { ...row, setsData: newSetsData };
+          }
+          return { ...row, [field]: value };
+        }
+        return row;
+      });
+      return {
+        ...prevRowsByDate,
+        [currentUser]: {
+          ...userRows,
+          [currentDate]: newRows,
+        },
+      };
     });
   };
 
@@ -144,7 +165,7 @@ export default function App() {
     saveWorkout(name); // Updating is essentially saving over the existing workout
   };
 
-  const exportWorkoutHistory = () => {
+  const exportWorkoutInformation = () => {
     const data = {
       rowsByDate,
       savedWorkouts,
@@ -160,7 +181,7 @@ export default function App() {
     document.body.removeChild(link);
   };
 
-  const importWorkoutHistory = (file) => {
+  const importWorkoutInformation = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -237,8 +258,8 @@ export default function App() {
           deleteWorkout={deleteWorkout}
           updateWorkout={updateWorkout}
           savedWorkouts={savedWorkouts}
-          exportWorkoutHistory={exportWorkoutHistory}
-          importWorkoutHistory={importWorkoutHistory}
+          exportWorkoutInformation={exportWorkoutInformation}
+          importWorkoutInformation={importWorkoutInformation}
         />
       )}
       <NavBar setCurrentPage={setCurrentPage} />

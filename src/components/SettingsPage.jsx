@@ -9,8 +9,8 @@ const SettingsPage = ({
   deleteWorkout,
   updateWorkout,
   savedWorkouts,
-  exportWorkoutHistory,
-  importWorkoutHistory,
+  exportWorkoutInformation,
+  importWorkoutInformation,
 }) => {
   const fileInputRef = useRef(null);
   const [selectedWorkout, setSelectedWorkout] = useState("");
@@ -53,14 +53,16 @@ const SettingsPage = ({
         </button>
       </div>
       <div className="mt-20">
-        <button onClick={exportWorkoutHistory}>Export Workout History</button>
+        <button onClick={exportWorkoutInformation}>
+          Export Workout History
+        </button>
       </div>
       <div className="mt-20">
         <input
           type="file"
           ref={fileInputRef}
           style={{ display: "none" }}
-          onChange={(e) => importWorkoutHistory(e.target.files[0])}
+          onChange={(e) => importWorkoutInformation(e.target.files[0])}
         />
         <button onClick={handleImportClick}>Import Workout History</button>
       </div>
