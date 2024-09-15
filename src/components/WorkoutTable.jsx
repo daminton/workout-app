@@ -33,7 +33,9 @@ const WorkoutTable = ({
       const currentVolume = calculateCurrentVolume(item);
 
       changes[item.key] =
-        lastVolume === null || currentVolume > lastVolume ? "green" : "red";
+        lastVolume === null || currentVolume > lastVolume
+          ? "#5fa052"
+          : "	#984b4b";
     });
     setVolumeChanges(changes);
   }, [currentRows, rowsByDate, currentUser]);
