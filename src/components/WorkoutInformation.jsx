@@ -20,7 +20,6 @@ import {
 } from "recharts";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { Button } from "./ui/button";
 
 const WorkoutInformation = ({
   exercise,
@@ -34,19 +33,17 @@ const WorkoutInformation = ({
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    // Load notes from local storage when the component mounts or when currentUser or exercise changes
     const savedNotes = localStorage.getItem(`${currentUser}_${exercise}_notes`);
     if (savedNotes) {
       setNotes(savedNotes);
     } else {
-      setNotes(""); // Clear notes if there's no saved data for this user and exercise
+      setNotes("");
     }
   }, [currentUser, exercise]);
 
   const handleNotesChange = (e) => {
     const newNotes = e.target.value;
     setNotes(newNotes);
-    // Save notes to local storage as the user types
     localStorage.setItem(`${currentUser}_${exercise}_notes`, newNotes);
   };
 
@@ -85,6 +82,12 @@ const WorkoutInformation = ({
     }))
   );
 
+  const setsData = currentExercise.setsData || [];
+
+  const handleSetChange = (index, field, value) => {
+    onSetUpdate(currentExercise.key, index, field, value);
+  };
+
   return (
     <div className="p-2 rounded-md mt-2">
       <h4 className="text-sm font-medium mb-2">Reps and Sets for {exercise}</h4>
@@ -99,20 +102,15 @@ const WorkoutInformation = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {(currentExercise.setsData || []).map((set, index) => (
+            {setsData.map((set, index) => (
               <TableRow key={index}>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>
                   <Input
                     type="number"
-                    value={set.reps || ""}
+                    value={set.reps}
                     onChange={(e) =>
-                      onSetUpdate(
-                        currentExercise.key,
-                        index,
-                        "reps",
-                        e.target.value
-                      )
+                      handleSetChange(index, "reps", e.target.value)
                     }
                     className="w-16"
                   />
@@ -120,14 +118,9 @@ const WorkoutInformation = ({
                 <TableCell>
                   <Input
                     type="number"
-                    value={set.weight || ""}
+                    value={set.weight}
                     onChange={(e) =>
-                      onSetUpdate(
-                        currentExercise.key,
-                        index,
-                        "weight",
-                        e.target.value
-                      )
+                      handleSetChange(index, "weight", e.target.value)
                     }
                     className="w-16"
                   />

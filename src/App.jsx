@@ -102,7 +102,7 @@ export default function App() {
     });
   };
 
-  const handleInputChange = (key, field, value, setIndex) => {
+  const handleInputChange = (key, field, value, setIndex = 0) => {
     const currentDate = date;
     setRowsByDate((prevRowsByDate) => {
       const userRows = prevRowsByDate[currentUser] || {};
@@ -118,6 +118,9 @@ export default function App() {
                 (_, index) => currentSetsData[index] || { reps: "", weight: "" }
               );
             return { ...row, [field]: value, setsData: newSetsData };
+          } else if (field === "setsData") {
+            // Handle the case where the entire setsData array is being updated
+            return { ...row, setsData: value };
           } else if (field === "reps" || field === "weight") {
             const newSetsData = [...(row.setsData || [])];
             newSetsData[setIndex] = {

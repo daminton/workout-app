@@ -10,7 +10,7 @@ import {
 import { Input } from "./ui/input";
 import WorkoutInformation from "./WorkoutInformation";
 import { Button } from "./ui/button";
-import { Trash2, View } from "lucide-react";
+import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
 const WorkoutTable = ({
   currentRows,
@@ -20,7 +20,6 @@ const WorkoutTable = ({
   currentUser,
 }) => {
   const [volumeChanges, setVolumeChanges] = useState({});
-  const [visibleHistory, setVisibleHistory] = useState({});
   const [expandedRows, setExpandedRows] = useState({});
 
   const handleSetUpdate = (exerciseKey, setIndex, field, value) => {
@@ -85,6 +84,29 @@ const WorkoutTable = ({
     }));
   };
 
+  const shouldShowRepsWeight = (item) => {
+    return !expandedRows[item.key] || allSetsEqual(item.setsData);
+  };
+
+  const allSetsEqual = (setsData) => {
+    if (!setsData || setsData.length === 0) return true;
+    const firstSet = setsData[0];
+    return setsData.every(
+      (set) => set.reps === firstSet.reps && set.weight === firstSet.weight
+    );
+  };
+
+  const handleUnexpandedSetUpdate = (exerciseKey, field, value) => {
+    const exercise = currentRows.find((row) => row.key === exerciseKey);
+    if (exercise) {
+      const newSetsData = (exercise.setsData || []).map((set) => ({
+        ...set,
+        [field]: value,
+      }));
+      handleInputChange(exerciseKey, "setsData", newSetsData);
+    }
+  };
+
   return (
     <div className="w-full flex justify-center">
       <Table className="w-[96%]">
@@ -93,12 +115,15 @@ const WorkoutTable = ({
             <TableHead></TableHead>
             <TableHead>Exercise</TableHead>
             <TableHead>Sets</TableHead>
+            <TableHead>Reps</TableHead>
+            <TableHead>Weight</TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {currentRows.map((item) => {
             const backgroundColor = volumeChanges[item.key] || "white";
+            const showRepsWeight = shouldShowRepsWeight(item);
 
             return (
               <React.Fragment key={item.key}>
@@ -108,7 +133,11 @@ const WorkoutTable = ({
                       onClick={() => toggleExpand(item.key)}
                       size={"icon"}
                     >
-                      <View size={22} color="black" />
+                      {expandedRows[item.key] ? (
+                        <ChevronUp size={22} color="black" />
+                      ) : (
+                        <ChevronDown size={22} color="black" />
+                      )}
                     </Button>
                   </TableCell>
                   <TableCell>
@@ -132,6 +161,40 @@ const WorkoutTable = ({
                       placeholder="Sets"
                     />
                   </TableCell>
+                  <TableCell className="w-16">
+                    {showRepsWeight ? (
+                      <Input
+                        value={item.setsData?.[0]?.reps || ""}
+                        onChange={(e) =>
+                          handleUnexpandedSetUpdate(
+                            item.key,
+                            "reps",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Reps"
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell className="w-16">
+                    {showRepsWeight ? (
+                      <Input
+                        value={item.setsData?.[0]?.weight || ""}
+                        onChange={(e) =>
+                          handleUnexpandedSetUpdate(
+                            item.key,
+                            "weight",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Weight"
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Button
                       onClick={() => handleDeleteRow(item.key)}
@@ -144,7 +207,7 @@ const WorkoutTable = ({
                 </TableRow>
                 {expandedRows[item.key] && (
                   <TableRow>
-                    <TableCell colSpan={3}>
+                    <TableCell colSpan={6}>
                       <WorkoutInformation
                         exercise={item.exercise}
                         rowsByDate={rowsByDate}
