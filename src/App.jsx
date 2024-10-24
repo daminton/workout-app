@@ -305,7 +305,7 @@ export default function App() {
           importWorkoutInformation={importWorkoutInformation}
         />
       )}
-      <NavBar setCurrentPage={setCurrentPage} />
+      <NavBar setCurrentPage={setCurrentPage} currentPage={currentPage} setDate={setDate} />
     </div>
   );
 }
