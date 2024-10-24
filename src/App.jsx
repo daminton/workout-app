@@ -22,8 +22,21 @@ import { SelectContent } from "./components/ui/select";
 import { SelectItem } from "./components/ui/select";
 import P90xWorkouts from "./workouts/P90xWorkouts";
 
+export function timeToZero(oldDate) {
+  const newDate = new Date(oldDate)
+
+  // Set Time to 00:00:00
+  newDate.setHours(0)
+  newDate.setMinutes(0)
+  newDate.setSeconds(0)
+
+  // Technically ms still different, but doesn't show up in default string form
+
+  return newDate
+}
+
 export default function App() {
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(timeToZero(new Date()));
   const [rowsByDate, setRowsByDate] = useState({});
   const [selectedWorkout, setSelectedWorkout] = useState(false);
   const [savedWorkouts, setSavedWorkouts] = useState({});
@@ -39,7 +52,7 @@ export default function App() {
       setRowsByDate(parsedData.rowsByDate || {});
       setSavedWorkouts(parsedData.savedWorkouts || {});
       if (parsedData.currentDate) {
-        setDate(new Date(parsedData.currentDate));
+        setDate(timeToZero(new Date(parsedData.currentDate)));
       }
     }
   }, []);
@@ -72,13 +85,13 @@ export default function App() {
   };
 
   const handlePreviousDate = () => {
-    const previousDate = new Date(date);
+    const previousDate = timeToZero(new Date(date));
     previousDate.setDate(date.getDate() - 1);
     setDate(previousDate);
   };
 
   const handleNextDate = () => {
-    const nextDate = new Date(date);
+    const nextDate = timeToZero(new Date(date));
     nextDate.setDate(date.getDate() + 1);
     setDate(nextDate);
   };
@@ -209,12 +222,23 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  const parseRowsByDate = (newRowsByDate) => {
+    const parsedRowsByDate = {}
+    parsedRowsByDate.defaultUser = {}
+
+    for (const [key, value] of Object.entries(newRowsByDate.defaultUser)) {
+      parsedRowsByDate.defaultUser[timeToZero(key)] = value;
+    }
+
+    return parsedRowsByDate
+  }
+
   const importWorkoutInformation = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const importedData = JSON.parse(event.target.result);
-        setRowsByDate(importedData.rowsByDate);
+        setRowsByDate(parseRowsByDate(importedData.rowsByDate));
         setSavedWorkouts(importedData.savedWorkouts);
       } catch (e) {
         alert("Invalid JSON file");

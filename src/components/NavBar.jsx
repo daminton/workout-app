@@ -1,13 +1,14 @@
 import { Button } from "./ui/button";
 import { Dumbbell, Timer, Settings } from "lucide-react";
 import { Separator } from "./ui/separator";
+import { timeToZero } from "@/App";
 
 const NavBar = ({ setCurrentPage, currentPage, setDate }) => {
   return (
     <div className="fixed bottom-0 h-[60px] w-full flex flex-row justify-center gap-9 py-2 border-t-2">
       <Button onClick={() => {
         if (currentPage == "workout") {
-          setDate(new Date())
+          setDate(timeToZero(new Date()))
         } else {
           setCurrentPage("workout")
         }
