@@ -21,19 +21,7 @@ import { SelectValue } from "./components/ui/select";
 import { SelectContent } from "./components/ui/select";
 import { SelectItem } from "./components/ui/select";
 import P90xWorkouts from "./workouts/P90xWorkouts";
-
-export function timeToZero(oldDate) {
-  const newDate = new Date(oldDate)
-
-  // Set Time to 00:00:00
-  newDate.setHours(0)
-  newDate.setMinutes(0)
-  newDate.setSeconds(0)
-
-  // Technically ms still different, but doesn't show up in default string form
-
-  return newDate
-}
+import { timeToZero } from "./lib/utils";
 
 export default function App() {
   const [date, setDate] = useState(timeToZero(new Date()));
@@ -252,7 +240,7 @@ export default function App() {
   const currentRows = userRows[currentDate] || [];
 
   return (
-    <div className="flex flex-col w-[100vw] h-[100vh] overflow-auto ">
+    <div className="flex flex-col w-[100vw] h-[100vh]">
       {currentPage === "workout" && (
         <div className="w-full">
           <div className="flex flex-row items-center justify-between mb-4 cursor-pointer px-2 pt-2">
@@ -301,7 +289,7 @@ export default function App() {
             </Select>
           </div>
 
-          <div className="w-full h-full flex flex-col items-end">
+          <div className="w-full grow flex flex-col items-end pb-[100px]">
             <WorkoutTable
               currentRows={currentRows}
               handleInputChange={handleInputChange}

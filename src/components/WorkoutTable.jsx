@@ -156,16 +156,19 @@ const WorkoutTable = ({
                   </TableCell>
                   <TableCell className="w-16">
                     <Input
+                      type="number"
                       value={item.sets}
                       onChange={(e) =>
                         handleInputChange(item.key, "sets", e.target.value)
                       }
                       placeholder="Sets"
+                      inputmode="numeric"
                     />
                   </TableCell>
                   <TableCell className="w-16">
                     {showRepsWeight ? (
                       <Input
+                        type="number"
                         value={item.setsData?.[0]?.reps || ""}
                         onChange={(e) =>
                           handleUnexpandedSetUpdate(
@@ -175,6 +178,7 @@ const WorkoutTable = ({
                           )
                         }
                         placeholder="Reps"
+                        inputmode="numeric"
                       />
                     ) : (
                       "-"
@@ -183,6 +187,7 @@ const WorkoutTable = ({
                   <TableCell className="w-16">
                     {showRepsWeight ? (
                       <Input
+                        type="number"
                         value={item.setsData?.[0]?.weight || ""}
                         onChange={(e) =>
                           handleUnexpandedSetUpdate(
@@ -192,6 +197,7 @@ const WorkoutTable = ({
                           )
                         }
                         placeholder="Weight"
+                        inputmode="decimal"
                       />
                     ) : (
                       "-"
