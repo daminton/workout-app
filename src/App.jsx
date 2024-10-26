@@ -240,7 +240,7 @@ export default function App() {
   const currentRows = userRows[currentDate] || [];
 
   return (
-    <div className="flex flex-col w-[100vw] h-[100vh] overflow-auto ">
+    <div className="flex flex-col w-[100vw] h-[100vh]">
       {currentPage === "workout" && (
         <div className="w-full">
           <div className="flex flex-row items-center justify-between mb-4 cursor-pointer px-2 pt-2">
@@ -289,7 +289,7 @@ export default function App() {
             </Select>
           </div>
 
-          <div className="w-full h-full flex flex-col items-end">
+          <div className="w-full grow flex flex-col items-end pb-[100px]">
             <WorkoutTable
               currentRows={currentRows}
               handleInputChange={handleInputChange}
