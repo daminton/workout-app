@@ -113,6 +113,7 @@ const WorkoutInformation = ({
                       handleSetChange(index, "reps", e.target.value)
                     }
                     className="w-16"
+                    inputmode="numeric"
                   />
                 </TableCell>
                 <TableCell>
@@ -123,6 +124,7 @@ const WorkoutInformation = ({
                       handleSetChange(index, "weight", e.target.value)
                     }
                     className="w-16"
+                    inputmode="decimal"
                   />
                 </TableCell>
               </TableRow>
