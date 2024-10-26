@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from './ui/button';
-import { Ellipsis, Play, Plus } from 'lucide-react';
+import { Ellipsis, Play, Save } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Input } from './ui/input';
@@ -67,7 +67,7 @@ export default function SavedWorkoutsList({
       <div className='flex flex-row gap-2'>
         <Input type="text" placeholder="Untitled Workout" value={workoutName} onChange={(e) => setWorkoutName(e.target.value)} />
         <div><Button variant="outline" size="icon" className="mr-2" onClick={() => { saveWorkout(workoutName) }}>
-          <Plus />
+          <Save />
         </Button></div>
       </div>
 
