@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { Dumbbell, Timer, Settings } from "lucide-react";
 import { Separator } from "./ui/separator";
-import { timeToZero } from "@/App";
+import { timeToZero } from "@/lib/utils";
 
 const NavBar = ({ setCurrentPage, currentPage, setDate }) => {
   return (
