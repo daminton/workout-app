@@ -1,28 +1,19 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import WorkoutTable from "./components/WorkoutTable";
 import NavBar from "./components/NavBar";
 import CalendarPage from "./components/CalendarPage";
 import SettingsPage from "./components/SettingsPage";
 import { Button } from "./components/ui/button";
-import { Calendar } from "./components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./components/ui/popover";
+import { Popover, PopoverTrigger } from "./components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "./lib/utils";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { ChevronRightIcon, ChevronLeftIcon } from "lucide-react";
-import { Select } from "./components/ui/select";
-import { SelectTrigger } from "./components/ui/select";
-import { SelectValue } from "./components/ui/select";
-import { SelectContent } from "./components/ui/select";
-import { SelectItem } from "./components/ui/select";
 import { timeToZero } from "./lib/utils";
 import StreakDisplay from "./components/StreakDisplay";
 import useAppStore from "@store";
+import WorkoutSelector from "./components/WorkoutSelector";
 
 export default function App() {
   const currentDate = useAppStore((state) => state.currentDate);
@@ -193,6 +184,25 @@ export default function App() {
     reader.readAsText(file);
   };
 
+  const handleClearWorkout = () => {
+    setSelectedWorkout("");
+    const currentDateStr = timeToZero(new Date(currentDate)).toISOString();
+
+    // Clear workout name
+    const updatedNames = { ...workoutNames };
+    delete updatedNames[currentDateStr];
+    setWorkoutNames(updatedNames);
+
+    // Clear exercises - setting to empty array instead of deleting
+    setExercisesByDate({
+      ...exercisesByDate,
+      [currentUser]: {
+        ...exercisesByDate[currentUser],
+        [currentDateStr]: [], // Set to empty array instead of deleting
+      },
+    });
+  };
+
   return (
     <div className="flex flex-col w-[100vw] h-[100vh]">
       {currentPage === "workout" && (
@@ -227,20 +237,12 @@ export default function App() {
             </Button>
           </div>
 
-          <div className="w-full px-2 mb-4">
-            <Select onValueChange={handleWorkoutSelect} value={selectedWorkout}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a workout" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(savedWorkouts).map((workout, i) => (
-                  <SelectItem key={i} value={workout.name}>
-                    {workout.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <WorkoutSelector
+            selectedWorkout={selectedWorkout}
+            onWorkoutSelect={handleWorkoutSelect}
+            onClearWorkout={handleClearWorkout}
+            savedWorkouts={savedWorkouts}
+          />
 
           <div className="w-full flex flex-col items-end h-[72%]">
             <div className="w-full max-h-[80%] overflow-y-auto">

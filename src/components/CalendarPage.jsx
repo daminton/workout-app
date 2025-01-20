@@ -140,7 +140,9 @@ const CalendarPage = ({ exercisesByDate, currentUser, workoutNames }) => {
 
   return (
     <div className="p-4 h-[calc(100vh-60px)]">
-      <StreakDisplay />
+      <div className="pb-4">
+        <StreakDisplay />
+      </div>
       <div className="flex justify-between items-center mb-4">
         <Button
           variant="outline"
