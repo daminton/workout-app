@@ -1,6 +1,6 @@
-const P90xWorkouts = [
-  {
-    name: "P90X Back & Biceps",
+const P90xWorkouts = {
+  "P90x Back & Biceps": {
+    name: "P90x Back & Biceps",
     exercises: [
       {
         exercise: "Wide Front Pull-Ups",
@@ -124,8 +124,8 @@ const P90xWorkouts = [
       },
     ],
   },
-  {
-    name: "P90X Chest, Shoulders, & Triceps",
+  "P90x Chest, Shoulders, & Triceps": {
+    name: "P90x Chest, Shoulders, & Triceps",
     exercises: [
       {
         exercise: "Slow-Motion 3-in-1 Push-Ups",
@@ -249,8 +249,8 @@ const P90xWorkouts = [
       },
     ],
   },
-  {
-    name: "P90X Legs & Back",
+  "P90x Legs & Back": {
+    name: "P90x Legs & Back",
     exercises: [
       {
         exercise: "Balanced Lunges",
@@ -364,8 +364,8 @@ const P90xWorkouts = [
       },
     ],
   },
-  {
-    name: "P90X Chest & Back",
+  "P90x Chest & Back": {
+    name: "P90x Chest & Back",
     exercises: [
       {
         exercise: "Standard Push-Ups",
@@ -429,8 +429,8 @@ const P90xWorkouts = [
       },
     ],
   },
-  {
-    name: "P90X Shoulders and Arms",
+  "P90x Shoulders and Arms": {
+    name: "P90x Shoulders and Arms",
     exercises: [
       {
         exercise: "Alt. Shoulder Presses",
@@ -584,6 +584,5 @@ const P90xWorkouts = [
       },
     ],
   },
-];
-
+};
 export default P90xWorkouts;

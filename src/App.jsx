@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import WorkoutTable from "./components/WorkoutTable";
 import NavBar from "./components/NavBar";
-import TimerPage from "./components/TimerPage";
+import CalendarPage from "./components/CalendarPage";
 import SettingsPage from "./components/SettingsPage";
 import { Button } from "./components/ui/button";
 import { Calendar } from "./components/ui/calendar";
@@ -20,50 +20,60 @@ import { SelectTrigger } from "./components/ui/select";
 import { SelectValue } from "./components/ui/select";
 import { SelectContent } from "./components/ui/select";
 import { SelectItem } from "./components/ui/select";
-import P90xWorkouts from "./workouts/P90xWorkouts";
 import { timeToZero } from "./lib/utils";
+import StreakDisplay from "./components/StreakDisplay";
+import useAppStore from "@store";
 
 export default function App() {
-  const [date, setDate] = useState(timeToZero(new Date()));
-  const [rowsByDate, setRowsByDate] = useState({});
-  const [selectedWorkout, setSelectedWorkout] = useState(false);
-  const [savedWorkouts, setSavedWorkouts] = useState({});
-  const [workoutName, setWorkoutName] = useState("");
-  const [currentPage, setCurrentPage] = useState("workout");
-  const currentUser = "defaultUser";
-  const predefinedWorkouts = [...P90xWorkouts];
+  const currentDate = useAppStore((state) => state.currentDate);
+  const setCurrentDate = useAppStore((state) => state.setCurrentDate);
+  const currentUser = useAppStore((state) => state.currentUser);
+  const exercisesByDate = useAppStore((state) => state.exercisesByDate);
+  const setExercisesByDate = useAppStore((state) => state.setExercisesByDate);
+  const savedWorkouts = useAppStore((state) => state.savedWorkouts);
+  const setSavedWorkouts = useAppStore((state) => state.setSavedWorkouts);
+  const currentPage = useAppStore((state) => state.currentPage);
+  const [selectedWorkout, setSelectedWorkout] = useState("");
+  const workoutNames = useAppStore((state) => state.workoutNames);
+  const setWorkoutNames = useAppStore((state) => state.setWorkoutNames);
 
   useEffect(() => {
-    const storedData = localStorage.getItem("workoutAppData");
-    if (storedData) {
-      const parsedData = JSON.parse(storedData);
-      setRowsByDate(parsedData.rowsByDate || {});
-      setSavedWorkouts(parsedData.savedWorkouts || {});
-      if (parsedData.currentDate) {
-        setDate(timeToZero(new Date(parsedData.currentDate)));
+    // update streak
+    const userRows = exercisesByDate[currentUser] || {};
+    // check all previous dates for a consecutive workout
+    let streak = 0;
+    let previousDate = timeToZero(new Date(currentDate));
+    while (true) {
+      previousDate.setDate(previousDate.getDate() - 1);
+      const previousRows = userRows[previousDate?.toISOString()] || [];
+      if (previousRows.length === 0) {
+        break;
       }
+      streak++;
     }
-  }, []);
-
-  useEffect(() => {
-    const data = {
-      rowsByDate,
-      savedWorkouts,
-      currentDate: date.toISOString(),
-    };
-    localStorage.setItem("workoutAppData", JSON.stringify(data));
-  }, [rowsByDate, savedWorkouts, date]);
+    localStorage.setItem("workoutStreak", streak);
+  }, [exercisesByDate]);
 
   const handleWorkoutSelect = (workoutName) => {
     setSelectedWorkout(workoutName);
-    const workout = predefinedWorkouts.find((w) => w.name === workoutName);
+    const workout = Object.values(savedWorkouts).find(
+      (w) => w.name === workoutName
+    );
+    const currentDateStr = timeToZero(new Date(currentDate)).toISOString();
+
+    // Save workout name
+    const updatedNames = {
+      ...workoutNames,
+      [currentDateStr]: workoutName,
+    };
+    setWorkoutNames(updatedNames);
+
     if (workout) {
-      const currentDate = date;
-      setRowsByDate({
-        ...rowsByDate,
+      setExercisesByDate({
+        ...exercisesByDate,
         [currentUser]: {
-          ...rowsByDate[currentUser],
-          [currentDate]: workout.exercises.map((exercise, index) => ({
+          ...exercisesByDate[currentUser],
+          [currentDateStr]: workout.exercises.map((exercise, index) => ({
             ...exercise,
             key: `${index + 1}`,
           })),
@@ -73,20 +83,19 @@ export default function App() {
   };
 
   const handlePreviousDate = () => {
-    const previousDate = timeToZero(new Date(date));
-    previousDate.setDate(date.getDate() - 1);
-    setDate(previousDate);
+    const previousDate = timeToZero(new Date(currentDate));
+    previousDate.setDate(previousDate.getDate() - 1);
+    setCurrentDate(previousDate.toISOString());
   };
 
   const handleNextDate = () => {
-    const nextDate = timeToZero(new Date(date));
-    nextDate.setDate(date.getDate() + 1);
-    setDate(nextDate);
+    const nextDate = timeToZero(new Date(currentDate));
+    nextDate.setDate(nextDate.getDate() + 1);
+    setCurrentDate(nextDate.toISOString());
   };
 
   const addExercise = () => {
-    const currentDate = date;
-    const userRows = rowsByDate[currentUser] || {};
+    const userRows = exercisesByDate[currentUser] || {};
     const currentRows = userRows[currentDate] || [];
     const newExercise = {
       key: `${currentRows.length + 1}`,
@@ -94,8 +103,8 @@ export default function App() {
       sets: "1",
       setsData: [{ reps: "", weight: "" }],
     };
-    setRowsByDate({
-      ...rowsByDate,
+    setExercisesByDate({
+      ...exercisesByDate,
       [currentUser]: {
         ...userRows,
         [currentDate]: [...currentRows, newExercise],
@@ -104,99 +113,48 @@ export default function App() {
   };
 
   const handleInputChange = (key, field, value, setIndex = 0) => {
-    const currentDate = date;
-    setRowsByDate((prevRowsByDate) => {
-      const userRows = prevRowsByDate[currentUser] || {};
-      const currentRows = userRows[currentDate] || [];
-      const newRows = currentRows.map((row) => {
-        if (row.key === key) {
-          if (field === "sets") {
-            const newSetsCount = parseInt(value) || 0;
-            const currentSetsData = row.setsData || [];
-            const newSetsData = Array(newSetsCount)
-              .fill()
-              .map(
-                (_, index) => currentSetsData[index] || { reps: "", weight: "" }
-              );
-            return { ...row, [field]: value, setsData: newSetsData };
-          } else if (field === "setsData") {
-            // Handle the case where the entire setsData array is being updated
-            return { ...row, setsData: value };
-          } else if (field === "reps" || field === "weight") {
-            const newSetsData = [...(row.setsData || [])];
-            newSetsData[setIndex] = {
-              ...newSetsData[setIndex],
-              [field]: value,
-            };
-            return { ...row, setsData: newSetsData };
-          }
-          return { ...row, [field]: value };
-        }
-        return row;
-      });
-      return {
-        ...prevRowsByDate,
-        [currentUser]: {
-          ...userRows,
-          [currentDate]: newRows,
-        },
-      };
-    });
-  };
-
-  const handleDeleteRow = (key) => {
-    const currentDate = date;
-    const userRows = rowsByDate[currentUser] || {};
+    const prevExercisesByDate = { ...exercisesByDate };
+    const userRows = prevExercisesByDate[currentUser] || {};
     const currentRows = userRows[currentDate] || [];
-    const updatedRows = currentRows.filter((row) => row.key !== key);
-    setRowsByDate({
-      ...rowsByDate,
+    const newRows = currentRows.map((row) => {
+      if (row.key === key) {
+        if (field === "sets") {
+          const newSetsCount = parseInt(value) || 0;
+          const currentSetsData = row.setsData || [];
+          const newSetsData = Array(newSetsCount)
+            .fill()
+            .map(
+              (_, index) => currentSetsData[index] || { reps: "", weight: "" }
+            );
+          return { ...row, [field]: value, setsData: newSetsData };
+        } else if (field === "setsData") {
+          // Handle the case where the entire setsData array is being updated
+          return { ...row, setsData: value };
+        } else if (field === "reps" || field === "weight") {
+          const newSetsData = [...(row.setsData || [])];
+          newSetsData[setIndex] = {
+            ...newSetsData[setIndex],
+            [field]: value,
+          };
+          return { ...row, setsData: newSetsData };
+        }
+        return { ...row, [field]: value };
+      }
+      return row;
+    });
+
+    setExercisesByDate({
+      ...prevExercisesByDate,
       [currentUser]: {
         ...userRows,
-        [currentDate]: updatedRows,
+        [currentDate]: newRows,
       },
     });
   };
 
-  const saveWorkout = (name) => {
-    const currentDate = date;
-    const userRows = rowsByDate[currentUser] || {};
-    const currentRows = userRows[currentDate] || [];
-    setSavedWorkouts({
-      ...savedWorkouts,
-      [name]: currentRows,
-    });
-  };
-
-  const loadWorkout = (name) => {
-    const workout = savedWorkouts[name];
-    if (workout) {
-      const currentDate = date;
-      setRowsByDate({
-        ...rowsByDate,
-        [currentUser]: {
-          ...rowsByDate[currentUser],
-          [currentDate]: workout,
-        },
-      });
-    } else {
-      alert("Workout not found");
-    }
-  };
-
-  const deleteWorkout = (name) => {
-    const newSavedWorkouts = { ...savedWorkouts };
-    delete newSavedWorkouts[name];
-    setSavedWorkouts(newSavedWorkouts);
-  };
-
-  const updateWorkout = (name) => {
-    saveWorkout(name); // Updating is essentially saving over the existing workout
-  };
-
   const exportWorkoutInformation = () => {
     const data = {
-      rowsByDate,
+      exercisesByDate,
       savedWorkouts,
     };
     const dataStr = JSON.stringify(data, null, 2);
@@ -211,22 +169,22 @@ export default function App() {
   };
 
   const parseRowsByDate = (newRowsByDate) => {
-    const parsedRowsByDate = {}
-    parsedRowsByDate.defaultUser = {}
+    const parsedRowsByDate = {};
+    parsedRowsByDate.defaultUser = {};
 
     for (const [key, value] of Object.entries(newRowsByDate.defaultUser)) {
       parsedRowsByDate.defaultUser[timeToZero(key)] = value;
     }
 
-    return parsedRowsByDate
-  }
+    return parsedRowsByDate;
+  };
 
   const importWorkoutInformation = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const importedData = JSON.parse(event.target.result);
-        setRowsByDate(parseRowsByDate(importedData.rowsByDate));
+        setExercisesByDate(parseRowsByDate(importedData.exercisesByDate));
         setSavedWorkouts(importedData.savedWorkouts);
       } catch (e) {
         alert("Invalid JSON file");
@@ -235,14 +193,13 @@ export default function App() {
     reader.readAsText(file);
   };
 
-  const currentDate = date;
-  const userRows = rowsByDate[currentUser] || {};
-  const currentRows = userRows[currentDate] || [];
-
   return (
     <div className="flex flex-col w-[100vw] h-[100vh]">
       {currentPage === "workout" && (
-        <div className="w-full">
+        <div className="w-full h-[calc(100%-60px)]">
+          <div className="p-4">
+            <StreakDisplay />
+          </div>
           <div className="flex flex-row items-center justify-between mb-4 cursor-pointer px-2 pt-2">
             <Button variant="outline" size="icon" onClick={handlePreviousDate}>
               <ChevronLeftIcon className="h-4 w-4" />
@@ -253,21 +210,17 @@ export default function App() {
                   variant={"outline"}
                   className={cn(
                     "w-fit border-0 justify-center text-lg",
-                    !date && "text-muted-foreground"
+                    !currentDate && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  {currentDate ? (
+                    format(currentDate, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
-              </PopoverContent>
             </Popover>
             <Button variant="outline" size="icon" onClick={handleNextDate}>
               <ChevronRightIcon className="h-4 w-4" />
@@ -280,8 +233,8 @@ export default function App() {
                 <SelectValue placeholder="Select a workout" />
               </SelectTrigger>
               <SelectContent>
-                {predefinedWorkouts.map((workout) => (
-                  <SelectItem key={workout.name} value={workout.name}>
+                {Object.values(savedWorkouts).map((workout, i) => (
+                  <SelectItem key={i} value={workout.name}>
                     {workout.name}
                   </SelectItem>
                 ))}
@@ -289,35 +242,34 @@ export default function App() {
             </Select>
           </div>
 
-          <div className="w-full grow flex flex-col items-end pb-[100px]">
-            <WorkoutTable
-              currentRows={currentRows}
-              handleInputChange={handleInputChange}
-              handleDeleteRow={handleDeleteRow}
-              rowsByDate={rowsByDate}
-              currentUser={currentUser}
-            />
-            <Button onClick={addExercise} size="icon" className="mr-2 mt-5">
+          <div className="w-full flex flex-col items-end h-[72%]">
+            <div className="w-full max-h-[80%] overflow-y-auto">
+              <WorkoutTable
+                handleInputChange={handleInputChange}
+                currentUser={currentUser}
+              />
+            </div>
+            <Button onClick={addExercise} size="icon" className="mr-5 mt-5">
               <Plus />
             </Button>
           </div>
         </div>
       )}
-      {currentPage === "timer" && <TimerPage />}
+      {currentPage === "calendar" && (
+        <CalendarPage
+          exercisesByDate={exercisesByDate}
+          currentUser={currentUser}
+          workoutNames={workoutNames}
+        />
+      )}
+
       {currentPage === "settings" && (
         <SettingsPage
-          workoutName={workoutName}
-          setWorkoutName={setWorkoutName}
-          saveWorkout={saveWorkout}
-          loadWorkout={loadWorkout}
-          deleteWorkout={deleteWorkout}
-          updateWorkout={updateWorkout}
-          savedWorkouts={savedWorkouts}
           exportWorkoutInformation={exportWorkoutInformation}
           importWorkoutInformation={importWorkoutInformation}
         />
       )}
-      <NavBar setCurrentPage={setCurrentPage} currentPage={currentPage} setDate={setDate} />
+      <NavBar />
     </div>
   );
 }

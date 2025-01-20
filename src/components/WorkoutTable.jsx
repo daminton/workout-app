@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import {
   Table,
   TableHeader,
@@ -11,14 +11,23 @@ import { Input } from "./ui/input";
 import WorkoutInformation from "./WorkoutInformation";
 import { Button } from "./ui/button";
 import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import useAppStore from "@store";
 
-const WorkoutTable = ({
-  currentRows,
-  handleInputChange,
-  handleDeleteRow,
-  rowsByDate,
-  currentUser,
-}) => {
+const WorkoutTable = ({ handleInputChange, currentUser }) => {
+  const removeExerciseFromDate = useAppStore(
+    (state) => state.removeExerciseFromDate
+  );
+  const currentDate = useAppStore((state) => state.currentDate);
+  const exercisesByDate = useAppStore((state) => state.exercisesByDate);
+  const userRows = useMemo(
+    () => exercisesByDate[currentUser] || {},
+    [exercisesByDate, currentUser]
+  );
+  const currentRows = useMemo(
+    () => userRows[currentDate] || [],
+    [userRows, currentDate]
+  );
+
   const [volumeChanges, setVolumeChanges] = useState({});
   const [expandedRows, setExpandedRows] = useState({});
 
@@ -38,10 +47,10 @@ const WorkoutTable = ({
           : "	#984b4b";
     });
     setVolumeChanges(changes);
-  }, [currentRows, rowsByDate, currentUser]);
+  }, [currentRows, exercisesByDate, currentUser]);
 
   const getLastVolume = (exercise) => {
-    const historicalData = rowsByDate[currentUser] || {};
+    const historicalData = exercisesByDate[currentUser] || {};
     let lastVolume = null;
 
     const sortedDates = Object.keys(historicalData).sort(
@@ -123,12 +132,11 @@ const WorkoutTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {currentRows.map((item) => {
-            const backgroundColor = volumeChanges[item.key] || "white";
+          {currentRows.map((item, index) => {
             const showRepsWeight = shouldShowRepsWeight(item);
 
             return (
-              <React.Fragment key={item.key}>
+              <Fragment key={item.key || index}>
                 <TableRow>
                   <TableCell>
                     <Button
@@ -144,9 +152,6 @@ const WorkoutTable = ({
                   </TableCell>
                   <TableCell>
                     <Input
-                      style={{
-                        backgroundColor: backgroundColor,
-                      }}
                       value={item.exercise}
                       onChange={(e) =>
                         handleInputChange(item.key, "exercise", e.target.value)
@@ -162,7 +167,7 @@ const WorkoutTable = ({
                         handleInputChange(item.key, "sets", e.target.value)
                       }
                       placeholder="Sets"
-                      inputmode="numeric"
+                      inputMode="numeric"
                     />
                   </TableCell>
                   <TableCell className="w-16">
@@ -178,7 +183,7 @@ const WorkoutTable = ({
                           )
                         }
                         placeholder="Reps"
-                        inputmode="numeric"
+                        inputMode="numeric"
                       />
                     ) : (
                       "-"
@@ -197,7 +202,7 @@ const WorkoutTable = ({
                           )
                         }
                         placeholder="Weight"
-                        inputmode="decimal"
+                        inputMode="decimal"
                       />
                     ) : (
                       "-"
@@ -205,7 +210,7 @@ const WorkoutTable = ({
                   </TableCell>
                   <TableCell>
                     <Button
-                      onClick={() => handleDeleteRow(item.key)}
+                      onClick={() => removeExerciseFromDate(item.key)}
                       variant={"destructive"}
                       size={"icon"}
                     >
@@ -218,7 +223,7 @@ const WorkoutTable = ({
                     <TableCell colSpan={6}>
                       <WorkoutInformation
                         exercise={item.exercise}
-                        rowsByDate={rowsByDate}
+                        exercisesByDate={exercisesByDate}
                         currentUser={currentUser}
                         isVisible={true}
                         currentExercise={item}
@@ -227,7 +232,7 @@ const WorkoutTable = ({
                     </TableCell>
                   </TableRow>
                 )}
-              </React.Fragment>
+              </Fragment>
             );
           })}
         </TableBody>

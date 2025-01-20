@@ -23,7 +23,7 @@ import { Textarea } from "./ui/textarea";
 
 const WorkoutInformation = ({
   exercise,
-  rowsByDate,
+  exercisesByDate,
   currentUser,
   isVisible,
   currentExercise,
@@ -48,8 +48,8 @@ const WorkoutInformation = ({
   };
 
   const history = [];
-  for (const date in rowsByDate[currentUser]) {
-    const rows = rowsByDate[currentUser][date];
+  for (const date in exercisesByDate[currentUser]) {
+    const rows = exercisesByDate[currentUser][date];
     rows.forEach((row) => {
       if (row.exercise === exercise) {
         let volume = 0;
@@ -113,7 +113,7 @@ const WorkoutInformation = ({
                       handleSetChange(index, "reps", e.target.value)
                     }
                     className="w-16"
-                    inputmode="numeric"
+                    inputMode="numeric"
                   />
                 </TableCell>
                 <TableCell>
@@ -124,7 +124,7 @@ const WorkoutInformation = ({
                       handleSetChange(index, "weight", e.target.value)
                     }
                     className="w-16"
-                    inputmode="decimal"
+                    inputMode="decimal"
                   />
                 </TableCell>
               </TableRow>
