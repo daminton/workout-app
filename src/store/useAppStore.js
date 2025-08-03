@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import { timeToZero } from "@/lib/utils";
 import P90xWorkouts from "@/workouts/P90xWorkouts";
 import P90x3Workouts from "@/workouts/P90x3Workouts";
+import Ript90Fit from "@/workouts/Ript90Fit";
 import Rest from "@/workouts/Rest";
 
 const initialState = {
@@ -12,6 +13,7 @@ const initialState = {
   savedWorkouts: {
     ...P90xWorkouts,
     ...P90x3Workouts,
+    ...Ript90Fit,
     ...Rest,
   },
   workoutNames: {},

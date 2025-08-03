@@ -77,18 +77,61 @@ export const P90x3Workouts = {
         sets: "1",
         setsData: [{ reps: "", weight: "" }],
       },
-      {
-        exercise: "Chin-Up",
-        sets: "1",
-        setsData: [{ reps: "", weight: "" }],
-      },
+      { exercise: "Chin-Up", sets: "1", setsData: [{ reps: "", weight: "" }] },
       {
         exercise: "Military Push-Up",
         sets: "1",
         setsData: [{ reps: "", weight: "" }],
       },
+      { exercise: "Chin-Up", sets: "1", setsData: [{ reps: "", weight: "" }] },
+      {
+        exercise: "Military Push-Up",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
+      {
+        exercise: "Close Grip Pull-Up",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
+      {
+        exercise: "Wide Push-Up",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
+      {
+        exercise: "Close Grip Pull-Up",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
+      {
+        exercise: "Wide Push-Up",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
+      {
+        exercise: "Vaulter Pull-Up (R)",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
+      {
+        exercise: "Staggered Push-Up (R)",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
+      {
+        exercise: "Vaulter Pull-Up (L)",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
+      {
+        exercise: "Staggered Push-Up (L)",
+        sets: "1",
+        setsData: [{ reps: "", weight: "" }],
+      },
     ],
   },
+
   "P90x3 Eccentric Upper": {
     name: "P90x3 Eccentric Upper",
     exercises: [
